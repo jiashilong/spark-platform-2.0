@@ -1,0 +1,15 @@
+*.log
+*.class
+*.jar
+*.iml
+
+.classpath
+.project
+.DS_Store
+
+bin/
+target/
+.settings/
+checkpoint/
+
+/bin/
