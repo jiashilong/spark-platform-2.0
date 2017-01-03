@@ -7,7 +7,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   */
 object SimpleApp {
     def main(args: Array[String]):Unit = {
-        val logFile = "/Users/jarry/local/spark-2.0.2-bin-hadoop2.7/README.md"
+        val logFile = args(0);
         val conf = new SparkConf().setAppName("SimpleApp").setMaster("local[2]")
         val sc = new SparkContext(conf)
         val data = sc.textFile(logFile, 2).cache()

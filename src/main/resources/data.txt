@@ -1,0 +1,9 @@
+aa 12
+bb 32
+aa 3
+cc 43
+dd 23
+cc 5
+cc 8
+bb 23
+bb 12
