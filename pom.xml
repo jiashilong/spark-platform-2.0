@@ -6,7 +6,11 @@
 
     <groupId>com.jarry.app</groupId>
     <artifactId>platform.spark</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>../java-concurrency-app</module>
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
