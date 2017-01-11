@@ -11,7 +11,7 @@ object HiveSqlApp {
         val sql = args(0)
 
         import spark.implicits._
-        spark.sql(sql).collect().foreach(println)
+        spark.sql(sql).take(10).foreach(println)
         spark.close()
     }
 }
