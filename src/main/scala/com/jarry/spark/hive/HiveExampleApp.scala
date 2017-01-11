@@ -9,7 +9,7 @@ object HiveExampleApp {
     def main(args: Array[String]):Unit = {
         val spark = SparkSession.builder()
                                 //必须是绝对路径
-                                .config("spark.sql.warehouse.dir", "/Users/jarry/idea/app/spark-platform-2.0/warehouse")
+                                //.config("spark.sql.warehouse.dir", "/Users/jarry/idea/app/spark-platform-2.0/warehouse")
                                 .enableHiveSupport()
                                 .getOrCreate()
         import spark.implicits._
