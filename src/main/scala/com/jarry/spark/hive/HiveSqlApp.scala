@@ -11,7 +11,11 @@ object HiveSqlApp {
         val sql = args(0)
 
         import spark.implicits._
-        spark.sql(sql).take(10).foreach(println)
+        val rs = spark.sql(sql).collect()
+        for(r <- rs) {
+            println(r.getString(0) + "," + r.getString(1) + "," + r.getString(2) + "," + r.getString(3))
+        }
+
         spark.close()
     }
 }
