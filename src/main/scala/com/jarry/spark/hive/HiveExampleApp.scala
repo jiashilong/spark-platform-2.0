@@ -15,7 +15,9 @@ object HiveExampleApp {
         import spark.implicits._
         spark.sql("create table if not exists test(key int, value string)")
         spark.sql("load data local inpath 'src/main/resources/kv1.txt' into table test")
-        spark.sql("select * from test").show()
+        val df = spark.sql("select * from test")
+
+        df.collect().foreach(println)
 
         spark.close()
     }
