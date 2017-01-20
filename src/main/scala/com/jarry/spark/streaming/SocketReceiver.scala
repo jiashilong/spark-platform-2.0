@@ -36,7 +36,7 @@ class SocketReceiver(host:String, port:Int) extends Receiver[String](StorageLeve
             val reader = new BufferedReader(new InputStreamReader(socket.getInputStream, StandardCharsets.UTF_8))
 
             while(!this.isStopped() && (line=reader.readLine()) != null) {
-                this.store(line)
+                this.store(line)  //数据存储后被其余的线程处理
             }
             reader.close()
             socket.close()
