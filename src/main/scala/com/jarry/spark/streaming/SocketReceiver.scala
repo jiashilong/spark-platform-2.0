@@ -1,6 +1,6 @@
 package com.jarry.spark.streaming
 
-import java.io.{BufferedReader, InputStreamReader}
+import java.io.{BufferedReader, InputStream, InputStreamReader}
 import java.net.{ConnectException, Socket}
 import java.nio.charset.StandardCharsets
 
@@ -8,6 +8,9 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.receiver.Receiver
 import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.slf4j.Logger
+import com.jarry.spark.util.NextIterator
+
+import scala.util.control.NonFatal
 
 
 /**
@@ -15,40 +18,77 @@ import com.typesafe.scalalogging.slf4j.Logger
   */
 class SocketReceiver(host:String, port:Int) extends Receiver[String](StorageLevel.MEMORY_AND_DISK_2) {
     @transient lazy val log = Logger(LoggerFactory.getLogger(this.getClass))
+    private var socket: Socket = _
 
     override def onStart(): Unit = {
-        new Thread("Socket Receiver Thread") {
-            override def run(): Unit = {receive()}
-        }.start()
+        log.info(s"Connecting to $host:$port")
+        try {
+            socket = new Socket(host, port)
+        } catch {
+            case e: ConnectException => {
+                restart(s"Restart, Error connect to $host:$port", e)
+                log.error(s"Error connect to $host:$port, Restart")
+                return
+            }
+        }
+
+        val t = new Thread("Socket Receiver"){
+            setDaemon(true)
+            override def run(): Unit = {
+                receive()
+            }
+        }
+        t.start()
+
     }
 
     override def onStop(): Unit = {
+        // in case restart thread close it twice
+        synchronized {
+            if(socket != null) {
+                socket.close()
+                socket = null
+                log.info(s"Closed socket from $host:$port")
+            }
+        }
+    }
 
+    private def bytesToLines(inputStream: InputStream): Iterator[String] = {
+        val dataInputStream = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+
+        return new NextIterator[String] {
+            override protected def getNext(): String = {
+                val nextValue = dataInputStream.readLine()
+                if(nextValue == null) {finished = true}
+                return nextValue
+            }
+
+            override protected def close(): Unit = {
+                if(dataInputStream != null) {dataInputStream.close()}
+            }
+        }
     }
 
     private def receive(): Unit = {
-        var socket:Socket = null
-        var line:String = null
-
         try {
-            socket = new Socket(host, port)
-            log.info("Connecting to " + host + ":" + port)
-            val reader = new BufferedReader(new InputStreamReader(socket.getInputStream, StandardCharsets.UTF_8))
-
-            while(!this.isStopped() && (line=reader.readLine()) != null) {
-                this.store(line)  //数据存储后被其余的线程处理
+            val it = bytesToLines(socket.getInputStream)
+            while(!isStopped() && it.hasNext) {
+                store(it.next())
             }
-            reader.close()
-            socket.close()
 
-            log.info("Stopped receiving")
-            this.restart("Trying to connect again")
+            if(!isStopped()) {
+                restart("Restart, Socket data stream had no more data")
+                log.info("Socket data stream had no more data, Restart")
+            } else {
+                log.info("Stopped receiving")
+            }
         } catch {
-//            case e: ConnectException =>
-//                restart("Error, connecting to " + host + ":" + port, e)
-            case t: Throwable =>
-//                restart("Error, receiving data", t)
-                  throw new RuntimeException(t)
+            case NonFatal(e) => {
+                log.error("Restart, Error receiving data", e)
+                restart("Restart, Error receiving data", e)
+            }
+        } finally {
+            onStop()
         }
     }
 }
