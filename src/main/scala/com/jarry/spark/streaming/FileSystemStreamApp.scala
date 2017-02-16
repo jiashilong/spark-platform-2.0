@@ -7,9 +7,11 @@ import org.apache.spark.streaming.StreamingContext
 /**
   * Created by jarry on 17/2/15.
   */
-class FileSystemStreamApp(conf: SparkConf, dir:String, interval:Int) extends Handler(conf, interval) with Logging {
+class FileSystemStreamApp(conf: SparkConf, dir:String, interval:Int) extends StreamHandler(conf, interval) with Logging {
+    private val DEFAULT_INTERVAL = 10
+
     def this(conf: SparkConf, dir:String) {
-        this(conf, dir, 10)
+        this(conf, dir, DEFAULT_INTERVAL)
     }
 
     override def handle(ssc: StreamingContext): Unit = {

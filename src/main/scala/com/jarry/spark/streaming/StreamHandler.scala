@@ -6,7 +6,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 /**
   * Created by jarry on 17/2/16.
   */
-abstract class Handler(conf: SparkConf, val interval:Int) {
+abstract class StreamHandler(conf: SparkConf, val interval:Int) {
     def handle(ssc: StreamingContext)
 
     def run(): Unit = {
