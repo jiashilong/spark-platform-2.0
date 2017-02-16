@@ -32,6 +32,6 @@ object FileSystemStreamApp {
         val sc = new SparkContext(conf)
 
         val app = new FileSystemStreamApp(sc, dir, interval.toInt)
-        app.run()
+        app.start()
     }
 }
