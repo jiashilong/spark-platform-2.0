@@ -8,11 +8,16 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
   * Created by jarry on 17/2/15.
   */
 class FileSystemStreamApp(val sc:SparkContext, val dir:String, val interval:Int) extends Logging {
+    private val ssc = new StreamingContext(sc, Seconds(interval))
 
     def run(): Unit = {
-        val ssc = new StreamingContext(sc, Seconds(interval))
+
         val lines = ssc.textFileStream(dir)
         lines.print(1024)
+    }
+
+    def start(): Unit = {
+        run()
 
         ssc.start()
         ssc.awaitTermination()
